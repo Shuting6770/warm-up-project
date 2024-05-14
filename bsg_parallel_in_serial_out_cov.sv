@@ -15,7 +15,7 @@ module bsg_parallel_in_serial_out_cov
     //internal regs
     ,input fifo0_ready_and_lo
     ,input fifo_v_lo
-    ,input fif01_ready_and_lo
+    ,input fifo1_ready_and_lo
     ,input [clog2els_lp-1:0] shift_ctr_r
     );
 
@@ -33,8 +33,8 @@ module bsg_parallel_in_serial_out_cov
         // cannot deque when empty 因为是yumi所以必须先valid_o==1
         cp_yumi:  coverpoint yumi_i {illegal_bins ig = {1};}
         // if empty fifo always ready to input data
-        cp_fral0: coverpoint fifo0_ready_and_lo {illegal_bins ig = {0}};
-        cp_fral1: coverpoint fifo1_ready_and_lo {illegal_bins ig = {0}};
+        cp_fral0: coverpoint fifo0_ready_and_lo {illegal_bins ig = {0};}
+        cp_fral1: coverpoint fifo1_ready_and_lo {illegal_bins ig = {0};}
         cp_scr: coverpoint shift_ctr_r;
     endgroup
 
@@ -50,11 +50,11 @@ module bsg_parallel_in_serial_out_cov
         cp_fral1: coverpoint fifo1_ready_and_lo;
         cp_scr: coverpoint shift_ctr_r;
 
-        cross_all: coverpoint cp_valid, cp_yumi, cp_fral0, cp_fral1, cp_scr {
+        cross_all: cross cp_valid, cp_yumi, cp_fral0, cp_fral1, cp_scr {
             // if bsg_one_fifo, nonempty==full
             illegal_bins ig0 = cross_all with (cp_fral0 && use_minimal_buffering_p);
             // if data in fifo1 has not been all trans, not ready!
-            illegal_bins ig1 = cross_all with (shift_ctr_r<=els_p-2 && cp_fral1)
+            illegal_bins ig1 = cross_all with (cp_scr<=els_p-2 && cp_fral1);
         }
     endgroup
 
@@ -70,7 +70,7 @@ module bsg_parallel_in_serial_out_cov
         $display("Instance: %m");
         $display("---------------------- Functional Coverage Results ----------------------");
         $display("Reset       functional coverage is %f%%", cov_reset.get_coverage());
-        $display("PISO empty  functional coverage is %f%%", cov_empty.cross_all.get_coverage());
+        $display("PISO empty  functional coverage is %f%%", cov_empty.get_coverage());
         $display("PISO nonempty   functional coverage is %f%%", cov_nonempty.cross_all.get_coverage());
         $display("-------------------------------------------------------------------------");
         $display("");

@@ -37,6 +37,7 @@ VERILOG_SOURCES += $(BASEJUMP_STL_DIR)/bsg_misc/bsg_array_reverse.sv
 VERILOG_SOURCES += $(BASEJUMP_STL_DIR)/bsg_misc/bsg_dff_en.sv
 VERILOG_SOURCES += $(BASEJUMP_STL_DIR)/bsg_misc/bsg_dff_reset.sv
 VERILOG_SOURCES += $(BASEJUMP_STL_DIR)/bsg_misc/bsg_counter_clear_up.sv
+VERILOG_SOURCES += $(BASEJUMP_STL_DIR)/bsg_misc/bsg_mux.sv
 VERILOG_SOURCES += $(BASEJUMP_STL_DIR)/bsg_mem/bsg_mem_1r1w.sv
 VERILOG_SOURCES += $(BASEJUMP_STL_DIR)/bsg_mem/bsg_mem_1r1w_synth.sv
 
