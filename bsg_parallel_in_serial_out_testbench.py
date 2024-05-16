@@ -59,15 +59,18 @@ async def input_side_testbench(dut, seed):
                 # dut.data_i.setimmediatevalue(math.floor(data_random.random()*pow(2, WIDTH_P)))
                 # dut.data_i.setimmediatevalue(math.floor(data_random.random()*pow(2, ELS_P))*pow(2,WIDTH_P) + math.floor(data_random.random()*pow(2, WIDTH_P)))
                 data_input = 0
-                for i in range(ELS_P):
-                    data_input |= math.floor(data_random.random()*pow(2, WIDTH_P)) << (i*WIDTH_P)
+                for j in range(ELS_P):
+                    data_input |= math.floor(data_random.random()*pow(2, WIDTH_P)) << (j*WIDTH_P)
+                # print("data_i:", hex(data_input))
                 dut.data_i.setimmediatevalue(data_input)
 
                 # iteration increment
                 i += 1
+                # print("input ITERATION:", i)
                 # Check iteration
                 if i == ITERATION:
                     # Test finished
+                    # print("input break!")
                     break
         else:
             # Deassert DUT valid signal
@@ -106,13 +109,21 @@ async def output_side_testbench(dut, seed):
             dut.yumi_i.setimmediatevalue(1)
             # Generate check data and compare with receive data
             # assert dut.data_o.value == math.floor(data_random.random()*pow(2, WIDTH_P)), "data mismatch!"
-            for i in range(ELS_P):
-                assert dut.data_o.value == dut.data_i.value[i], "data mismatch!"
+            for j in range(ELS_P):
+                # assert dut.data_o.value == dut.data_i.value[i], "data mismatch!"
+                test_data = math.floor(data_random.random()*pow(2, WIDTH_P))
+                # print("dut.data_o =", hex(dut.data_o.value),", test_data =",hex(test_data))
+                assert dut.data_o.value == test_data, "data mismatch!"
+                if j < ELS_P-1:
+                    # await Timer(CLK_PERIOD*1, units="ps")
+                    await RisingEdge(dut.clk_i); await Timer(1, units="ps")
             # iteration increment
             i += 1
+            # print("output ITERATION:", i)
             # Check iteration 
             if i == ITERATION:
                 # Test finished
+                # print("output break!")
                 break
         else:
             # Deassert DUT yumi signal
@@ -144,7 +155,7 @@ async def testbench(dut):
     dut.reset_i.value = 1
 
     # Wait for 5 clock cycles
-    await Timer(CLK_PERIOD*10, units="ps")
+    await Timer(CLK_PERIOD*5, units="ps")
     await RisingEdge(dut.clk_i); await Timer(1, units="ps")
 
     # Deassert reset

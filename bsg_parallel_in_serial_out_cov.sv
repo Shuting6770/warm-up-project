@@ -31,11 +31,16 @@ module bsg_parallel_in_serial_out_cov
     covergroup cg_empty @ (negedge clk_i iff ~reset_i & ~fifo_v_lo);
         cp_valid: coverpoint valid_i;
         // cannot deque when empty 因为是yumi所以必须先valid_o==1
-        cp_yumi:  coverpoint yumi_i {illegal_bins ig = {1};}
+        cp_yumi:  coverpoint yumi_i {ignore_bins ig = {1};}
+        // cp_yumi:  coverpoint yumi_i;
         // if empty fifo always ready to input data
         cp_fral0: coverpoint fifo0_ready_and_lo {illegal_bins ig = {0};}
         cp_fral1: coverpoint fifo1_ready_and_lo {illegal_bins ig = {0};}
-        cp_scr: coverpoint shift_ctr_r;
+        cp_scr: coverpoint shift_ctr_r;// {illegal_bins ig = {0};}
+
+        cross_all: cross cp_valid, cp_yumi, cp_fral0, cp_fral1, cp_scr {
+            illegal_bins ig0 = cross_all with (~cp_yumi && cp_scr!=0);
+        }
     endgroup
 
     //non-empty: fifo_v_lo == 1
@@ -55,6 +60,7 @@ module bsg_parallel_in_serial_out_cov
             illegal_bins ig0 = cross_all with (cp_fral0 && use_minimal_buffering_p);
             // if data in fifo1 has not been all trans, not ready!
             illegal_bins ig1 = cross_all with (cp_scr<=els_p-2 && cp_fral1);
+            illegal_bins ig3 = cross_all with (~cp_yumi && cp_scr!=0);
         }
     endgroup
 

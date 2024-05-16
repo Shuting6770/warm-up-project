@@ -26,7 +26,16 @@ module bsg_parallel_in_serial_out_wrapper #(parameter width_p = 16
     // Bind Covergroups
     bind bsg_parallel_in_serial_out bsg_parallel_in_serial_out_cov
    #(.els_p(els_p)
-    ,.use_minimal_buffering_p(use_minimal_buffering_p)) pc_cov (.*);
+    ,.use_minimal_buffering_p(use_minimal_buffering_p)) pc_cov (
+        .clk_i(clk_i)
+        ,.reset_i(reset_i)
+        ,.valid_i(valid_i)
+        ,.yumi_i(yumi_i)
+        ,.fifo0_ready_and_lo(piso.fifo0_ready_and_lo)
+        ,.fifo_v_lo(piso.fifo_v_lo)
+        ,.fifo1_ready_and_lo(piso.fifo1_ready_and_lo)
+        ,.shift_ctr_r(piso.shift_ctr_r)
+    );
 
     // Dump Waveforms
     initial begin
