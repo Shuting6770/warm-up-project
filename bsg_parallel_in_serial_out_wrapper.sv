@@ -1,7 +1,7 @@
 module bsg_parallel_in_serial_out_wrapper #(parameter width_p = 16
                             , parameter els_p = 4
                             , parameter hi_to_lo_p = 0
-                            ,parameter use_minimal_buffering_p = 0)
+                            ,parameter use_minimal_buffering_p = 1)
     (input clk_i
     ,input reset_i
 

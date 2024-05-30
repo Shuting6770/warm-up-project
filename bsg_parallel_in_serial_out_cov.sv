@@ -26,41 +26,42 @@ module bsg_parallel_in_serial_out_cov
 
     // Partitioning covergroup into smaller ones
     //empty: fifo_v_lo == 0 
-    // 不可能出现的情况：如果是bsg_one_fifo, 则不可能出现ready_and_o==0
-    //                 如果是bsg_two_fifo, 则不可能出现ready_and_o==0
+    // impossible case: if bsg_one_fifo, ready_and_o==0 is impossible
+    //                  if bsg_two_fifo, ready_and_o==0 is impossible
     covergroup cg_empty @ (negedge clk_i iff ~reset_i & ~fifo_v_lo);
         cp_valid: coverpoint valid_i;
         // cannot deque when empty 因为是yumi所以必须先valid_o==1
-        cp_yumi:  coverpoint yumi_i {ignore_bins ig = {1};}
+        cp_yumi:  coverpoint yumi_i {illegal_bins ig = {1};}
         // cp_yumi:  coverpoint yumi_i;
         // if empty fifo always ready to input data
         cp_fral0: coverpoint fifo0_ready_and_lo {illegal_bins ig = {0};}
         cp_fral1: coverpoint fifo1_ready_and_lo {illegal_bins ig = {0};}
-        cp_scr: coverpoint shift_ctr_r;// {illegal_bins ig = {0};}
+        //when fifo is empty, shift counter must be zero.
+        cp_scr: coverpoint shift_ctr_r {illegal_bins ig = {1,2,3};}
 
-        cross_all: cross cp_valid, cp_yumi, cp_fral0, cp_fral1, cp_scr {
-            illegal_bins ig0 = cross_all with (~cp_yumi && cp_scr!=0);
-        }
     endgroup
 
     //non-empty: fifo_v_lo == 1
-    // 不可能出现的情况：如果是bsg_one_fifo, 则不可能出现ready_and_o==1
-    //                 如果是bsg_two_fifo, ready_and_o==0 or 1
+    // impossible case: if bsg_one_fifo, ready_and_o==1 is impossible
+    //                  if bsg_two_fifo, ready_and_o==0 or 1
     covergroup cg_nonempty @ (negedge clk_i iff ~reset_i & fifo_v_lo);
         cp_valid: coverpoint valid_i;
         cp_yumi:  coverpoint yumi_i;
         // if nonempty bsg_one_fifo is full, bsg_two_fifo can be full/normal
-        // if full ready_and_o==0
-        cp_fral0: coverpoint fifo0_ready_and_lo;
+        // if full, ready_and_o must be 0
+        // fifo0_ready_and_lo must be 0 when nonempty
+        cp_fral0: coverpoint fifo0_ready_and_lo {illegal_bins ig = {1};}
         cp_fral1: coverpoint fifo1_ready_and_lo;
         cp_scr: coverpoint shift_ctr_r;
 
         cross_all: cross cp_valid, cp_yumi, cp_fral0, cp_fral1, cp_scr {
             // if bsg_one_fifo, nonempty==full
             illegal_bins ig0 = cross_all with (cp_fral0 && use_minimal_buffering_p);
-            // if data in fifo1 has not been all trans, not ready!
-            illegal_bins ig1 = cross_all with (cp_scr<=els_p-2 && cp_fral1);
-            illegal_bins ig3 = cross_all with (~cp_yumi && cp_scr!=0);
+            // if data in fifo1 has not been all transmitted, not ready!
+            illegal_bins ig1 = cross_all with (cp_scr < els_p-1 && cp_fral1);
+            illegal_bins ig2 = cross_all with (cp_scr == els_p-1 && ~cp_fral1);
+            // fifo1 is empty (fral1=1) fifo0 is full, counter = els_p-1;
+            // fifo1 is nonempty (fral1=0) counter < els_p-1
         }
     endgroup
 
